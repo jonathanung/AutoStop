@@ -1,0 +1,6 @@
+numpy
+carla
+pygame
+opencv-python
+open3d
+matplotlib
