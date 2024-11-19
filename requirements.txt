@@ -4,3 +4,4 @@ pygame
 opencv-python
 open3d
 matplotlib
+python-dotenv

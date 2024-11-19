@@ -11,7 +11,7 @@ class ClientManager:
         self.host = host
         self.port = port
         self.map_name = map_name
-        self.client = self.create_client(host, port)
+        self.client = self.create_client()
         self.world = self.client.get_world()
         self.vehicle_manager = None
 
@@ -44,6 +44,17 @@ class ClientManager:
             self.world = self.client.get_world()
         return self.world
     
+    """
+    This method resets the world.
+    """
+    def reset_world(self, map_name: str = None):
+        self.world = None
+        if map_name is not None:
+            self.map_name = map_name
+        self.client.load_world(self.map_name)
+        self.world = self.client.get_world()
+        print(f"World reset to: {self.world.get_map().name}")
+
     """
     This method returns the vehicle manager.
     """

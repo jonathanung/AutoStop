@@ -19,22 +19,44 @@ class VehicleEntityManager:
         self.cameras = []
         self.collision_sensors = []
     
+    """
+    This method cleans up the vehicle entity manager.
+    """
     def cleanup(self):
-        #TODO: Write cleanup logic
-        pass
-    
-    def add_lidar(self, lidar: carla.Lidar):
+        for lidar in self.lidars:
+            lidar.destroy()
+        for radar in self.radars:
+            radar.destroy()
+        for camera in self.cameras:
+            camera.destroy()
+        for collision_sensor in self.collision_sensors:
+            collision_sensor.destroy()
+        self.vehicle.destroy()
+
+    """
+    This method adds a lidar to the vehicle entity manager.
+    """
+    def add_lidar(self, lidar_transform: carla.Transform):
         #TODO: Write add lidar logic
         pass
     
-    def add_radar(self, radar: carla.Radar):
+    """
+    This method adds a radar to the vehicle entity manager.
+    """
+    def add_radar(self, radar_transform: carla.Transform):
         #TODO: Write add radar logic
         pass
     
-    def add_camera(self, camera: carla.Camera):
+    """
+    This method adds a camera to the vehicle entity manager.
+    """
+    def add_camera(self, camera_transform: carla.Transform):
         #TODO: Write add camera logic
         pass
-
-    def add_collision_sensor(self, collision_sensor: carla.CollisionSensor):
+    
+    """
+    This method adds a collision sensor to the vehicle entity manager.
+    """
+    def add_collision_sensor(self, collision_sensor_transform: carla.Transform):
         #TODO: Write add collision sensor logic
         pass

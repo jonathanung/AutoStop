@@ -1,5 +1,6 @@
 import carla
 import random
+from vehicle.vehicle_entity_manager import VehicleEntityManager
 
 """
 This class is used to manage vehicles in the CARLA simulator.
@@ -35,8 +36,9 @@ class VehicleManager:
         if vehicle is None:
             print(f"Failed to spawn a vehicle after {max_spawn_attempts} attempts")
             raise Exception("Failed to spawn a vehicle")
-        self.vehicles.append(vehicle)
-        return vehicle 
+        vehicle_entity_manager = VehicleEntityManager(vehicle)
+        self.vehicles.append(vehicle_entity_manager)
+        return vehicle_entity_manager 
 
     """
     This method returns the vehicle.
@@ -55,14 +57,14 @@ class VehicleManager:
     """
     def destroy_vehicle_by_index(self, index: int):
         vehicle = self.vehicles[index]
-        self.world.destroy_actor(vehicle)
+        vehicle.cleanup()
         self.vehicles.pop(index)
 
     """
     This method destroys a vehicle in the CARLA simulator.
     """
-    def destroy_vehicle(self, vehicle: carla.Vehicle):
-        self.world.destroy_actor(vehicle)
+    def destroy_vehicle(self, vehicle: VehicleEntityManager):
+        vehicle.cleanup()
         self.vehicles.remove(vehicle)
 
     """
@@ -70,7 +72,7 @@ class VehicleManager:
     """
     def destroy_all_vehicles(self):
         for vehicle in self.vehicles:
-            self.world.destroy_actor(vehicle)
+            vehicle.cleanup()
         self.vehicles = []
 
     def cleanup(self):
