@@ -48,6 +48,7 @@ class MainWindow(QWidget):
         self.control_layout = QHBoxLayout()
         self.next_button = QPushButton("Next View")
         self.prev_button = QPushButton("Prev View")
+        self.respawn_button = QPushButton("Respawn Vehicle")
         self.next_button.clicked.connect(self.next_view)
         self.prev_button.clicked.connect(self.prev_view)
         self.control_layout.addWidget(self.prev_button)
@@ -64,6 +65,13 @@ class MainWindow(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frames)
         self.timer.start(30)  # Update every 30 ms
+
+        # Initialize respawn button without connecting it yet
+        self.respawn_button = QPushButton("Respawn Vehicle")
+        self.control_layout.addWidget(self.respawn_button)
+        
+        # Initialize the callback as None
+        self.respawn_callback = None
 
     def add_view(self, name=""):
         """Add a new view window for camera/LIDAR output"""
@@ -129,6 +137,20 @@ class MainWindow(QWidget):
 
     def closeEvent(self, event):
         self.timer.stop()
+
+    def set_respawn_callback(self, callback):
+        """Set the callback function for the respawn button"""
+        self.respawn_callback = callback
+        self.respawn_button.clicked.connect(callback)
+
+    def clear_views(self):
+        """Clear all views and their associated queues"""
+        for view in self.views:
+            view.setParent(None)
+        self.views = []
+        self.image_queues = []
+        self.last_frames = []
+        self.current_view_index = -1
 
 
 

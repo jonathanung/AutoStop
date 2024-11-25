@@ -40,5 +40,15 @@ vehicle_entity_manager.add_lidar(carla.Transform(carla.Location(x=1.5, z=1.5)), 
 
 vehicle_entity_manager.move_to_speed(30)
 
+def respawn_vehicle():
+    global vehicle_entity_manager
+    window.clear_views()
+    vehicle_entity_manager = vehicle_manager.respawn_vehicle_by_index(0)
+    vehicle_entity_manager.add_camera(carla.Transform(carla.Location(x=1.5, z=1.5)), window)
+    vehicle_entity_manager.add_lidar(carla.Transform(carla.Location(x=1.5, z=1.5)), window)
+    vehicle_entity_manager.move_to_speed(30)
+
+window.set_respawn_callback(respawn_vehicle)
+
 app.aboutToQuit.connect(client_manager.cleanup)
 sys.exit(app.exec_())

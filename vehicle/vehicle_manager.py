@@ -44,14 +44,14 @@ class VehicleManager:
         Raises:
             Exception: If the vehicle could not be spawned after the maximum number of attempts.
         """
-        vehicle_bp = self.blueprint_library.filter(vehicle_bp)[index]
+        blueprint = self.blueprint_library.filter(vehicle_bp)[index]
         spawn_point = random.choice(self.spawn_points)
         vehicle = None
         max_spawn_attempts = 10
         # This loop tries to spawn a vehicle at the given spawn point. If it fails, it tries again at a random spawn point.
         for _ in range(max_spawn_attempts):
             try:
-                vehicle = self.world.spawn_actor(vehicle_bp, spawn_point)
+                vehicle = self.world.spawn_actor(blueprint, spawn_point)
                 print(f"Vehicle spawned at: {spawn_point.location}")
                 break
             except RuntimeError:
@@ -138,3 +138,40 @@ class VehicleManager:
         self.destroy_all_vehicles()
         self.client = None
         self.world = None
+
+    def respawn_vehicle_by_index(self, index: int):
+        """
+        Respawns a specific vehicle at a new random location.
+        
+        Args:
+            index (int): The index of the vehicle to respawn.
+        
+        Returns:
+            VehicleEntityManager: The newly spawned vehicle entity manager.
+        """
+        if 0 <= index < len(self.vehicles):
+            vehicle = self.vehicles[index]
+            vehicle_bp_name = vehicle.vehicle_bp
+            vehicle.cleanup()
+            self.vehicles.pop(index)
+            return self.spawn_vehicle(vehicle_bp_name, 0)
+        raise IndexError("Vehicle index out of range")
+
+    def respawn_all_vehicles(self):
+        """
+        Respawns all vehicles at new random locations.
+        
+        Returns:
+            list: List of newly spawned vehicle entity managers.
+        """
+        old_vehicles = self.vehicles.copy()
+        new_vehicles = []
+        
+        for vehicle in old_vehicles:
+            vehicle_bp = vehicle.vehicle_bp
+            vehicle.cleanup()
+            new_vehicle = self.spawn_vehicle(vehicle_bp, 0)
+            new_vehicles.append(new_vehicle)
+        
+        self.vehicles = new_vehicles
+        return new_vehicles

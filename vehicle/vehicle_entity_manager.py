@@ -38,7 +38,7 @@ class VehicleEntityManager:
     def __init__(self, vehicle: carla.Vehicle, vehicle_bp: str):
         self.vehicle = vehicle
         self.world = vehicle.get_world()
-        self.vehicle_bp = vehicle_bp
+        self.vehicle_bp = vehicle_bp.id if hasattr(vehicle_bp, 'id') else vehicle_bp
         self.pid_controller = VehiclePIDController(Kp=0.1, Ki=0.01, Kd=0.01, dt=0.1)
         self.lidars = []
         self.radars = []
@@ -99,48 +99,54 @@ class VehicleEntityManager:
         
         lidar = self.world.spawn_actor(lidar_bp, lidar_transform, attach_to=self.vehicle)
         view_index = window.add_view(f"{self.vehicle_bp} {lidar_bp} {len(self.lidars) + 1}")
-        
+
         def process_lidar(point_cloud):
             """
-            Manages vehicle entities in a simulation, including the addition and processing
-            of lidar sensors. This class provides methods to handle the transformation
-            and visualization of lidar data.
+            Processes the point cloud data from a LIDAR sensor, converts it to a top-down
+            view, and visualizes it in the main window.
             """
             points = np.frombuffer(point_cloud.raw_data, dtype=np.dtype('f4'))
             points = np.reshape(points, (-1, 4))
             
             # Create visualization image
-            image_size = 400
+            image_size = 600
             lidar_img = np.zeros((image_size, image_size, 3), dtype=np.uint8)
             
-            # Adjust scale factor for better visibility
-            scale_factor = 8
-            
-            # Center of the image
+            scale_factor = 15
             cx, cy = image_size // 2, image_size // 2
+            
+            # Find the range of points for normalization
+            x_points = points[:, 0]
+            y_points = points[:, 1]
+            z_points = points[:, 2]
             
             # Process points
             for point in points:
                 x, y, z, intensity = point
                 
-                # Filter out points
-                if -2.0 < z < 3.0:
+                if -5.0 < z < 5.0:
                     try:
-                        # Convert to top-down view
                         px = int(cx + y * scale_factor)
                         py = int(cy - x * scale_factor)
                         
                         if 0 <= px < image_size and 0 <= py < image_size:
-                            # Color based on height and intensity
-                            h_color = int((z + 2) * 64)
-                            i_color = int(intensity * 128)
-                            color = (min(255, h_color), 
-                                    min(255, i_color), 
-                                    min(255, int((x*x + y*y) * 255/2500)))
+                            # Normalize height to 0-1 range
+                            normalized_height = (z - z_points.min()) / (z_points.max() - z_points.min()) if z_points.max() != z_points.min() else 0
                             
-                            cv2.circle(lidar_img, (px, py), 2, color, -1)
+                            # Create color based on height and intensity
+                            h = int(normalized_height * 180)  # Hue value (0-180 for OpenCV)
+                            s = int(intensity * 255)  # Saturation from intensity
+                            v = 255  # Value always max for better visibility
                             
-                    except OverflowError:
+                            # Convert HSV to BGR with proper array shape
+                            hsv = np.uint8([[[h, s, v]]])
+                            bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+                            color = bgr[0][0]
+                            
+                            # Draw point with integer color values
+                            cv2.circle(lidar_img, (px, py), 2, (int(color[0]), int(color[1]), int(color[2])), -1)
+                            
+                    except (OverflowError, ValueError):
                         continue
             
             window.update_frame_for_view(view_index, lidar_img)
